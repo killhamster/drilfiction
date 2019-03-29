@@ -1,14 +1,14 @@
-# Pynsufferable: a stupid twitter bot.
+# Drilfiction.txt: a very stupid twitter bot.
 
-Tested only on Arch Linux & Raspbian. Written on latest Python 3 and licensed under GPLv3.
+Tested on macOS macOS 10.14 (18A391). Might work on other OSes. Written on latest Python 3 and licensed under GPLv3. Based on Pynsufferable: https://github.com/adwareboi/pynsufferable-twitter-bot
 
-A living proof of the bot (spanish (kinda of)) : [adware_ebooks](https://twitter.com/adware_ebooks) 
+A living proof of the bot (: [drilfiction](https://twitter.com/drilfiction)
 
 ### What does it do?
 
-This is a single python script bot that can randomly tweet mashed up tweets between 2 accounts or upload photos. It also can stream metions and reply to them by changing all the vowels by 'i' or using a text file as resource.
+This is a single python script bot that can randomly tweet mashed up tweets between 2 accounts or upload photos. It keeps a record of previous tweets in a sqlite database and compares new output to them to avoid repeating itself too much. It also can stream metions and reply to them by changing all the vowels by 'i' or using a text file as resource.
 
-By default, this text file is the Spanish Civil Code. Why not?
+The infamous epic fanfiction "My Immortal" is set as the default, in fitting with the theme.
 
 ### Dependecies:
 - Third party libraries: `tweepy`, `unidecode` and `termcolor`
@@ -18,22 +18,22 @@ By default, this text file is the Spanish Civil Code. Why not?
 All of these can be installed via `pip`
 
 ### How to use it:
-I personally use PyCharm IDE to run and manage the bot, but you can run it wherever you want as you do it with python 3.
+I just run it from a terminal since I'm a scrub, but you can run it wherever you want as you do it with python 3. I'm considering creating a web and app version.
 Steps:
 1. You will need to create a [Twitter App](https://developer.twitter.com/en/apps) linked to an account. Get the API keys needed in order to access.
 2. Edit bot.cfg with your parameters. Otherwise it won't work. See below
-3. Enjoy. (at your own risk)
+3. Enjoy. Or don't. Whatever.
 
 ### Configuration:
-The configuration is pretty straightfoward, here's the default one for the current version [2.0]:
+The configuration is pretty straightforward, here's the default one for the current version [1.0]:
 
 ```
 [Twitter]
 # Set the access keys. Get yours on developer.twitter.com. Do not use quotes.
-CONSUMER_KEY = 
-CONSUMER_SECRET = 
-ACCESS_KEY = 
-ACCESS_SECRET = 
+CONSUMER_KEY =
+CONSUMER_SECRET =
+ACCESS_KEY =
+ACCESS_SECRET =
 
 
 [Bot]
@@ -41,15 +41,20 @@ ACCESS_SECRET =
 # default: random. Needs: IMAGE_PROB, IMAGE_FOLDER, TWEET_COUNT, ACCOUNTS, MAX_TRIES, UPPER_PROB
 # image: posts only images from a folder, needs: IMAGE_FOLDER
 # write: posts only mash up tweets, needs: TWEET_COUNT, ACCOUNTS, MAX_TRIES, UPPER_PROB
-MODE = default
+MODE = write
 
 # Accounts. Separate by commas. Do not use quotes. Duplicates will be erased. (Use only one line)
-ACCOUNTS = 
+ACCOUNTS = dril, fanfiction_txt
 # How many tweets to retrieve from the accounts.
 # If it's too large, the bot may take more time. Should not be very big to avoid rate limit.
 # If it's too small, the bot can fail more frequently. Should not be smaller than 10.
 # 50~100 gives the bot a large amount of tweets to choose from and doesn't take that long to retrieve.
-TWEET_COUNT = 100
+TWEET_COUNT = 800
+# Length limits of Tweet1.
+# Sometimes a too-long or too-short tweet leads to unsatisfying results.
+# Being too restrictive in these values can lead to difficulty finding acceptable tweets to build on.
+MAX_LENGTH = 200
+MIN_LENGTH = 120
 # How many times tries to get valid tweets.
 # Use positive integers at least greater than 2, although 10 is good.
 # If it's smaller than 2, the bot can fail very often when getting tweets.
@@ -59,6 +64,9 @@ TWEET_COUNT = 100
 MAX_TRIES = 7
 # Probability of a new tweet of being uppercase.
 UPPER_PROB = 0.07
+# Levenshtein distance used for comparison. This number can be a float between 0.0 and 1.0.
+# Higher values allow for more similarity.
+DISTANCE = 0.75
 # Image folder name. Relative to the folder where the script is. Do not use quotes.
 IMAGE_FOLDER = photos
 # Image probability when MODE is set to default. Keep in mind that this is not *real* probability,
@@ -76,7 +84,7 @@ TIME_MODE = random
 FIXED_TIME_INTERVAL = 0.5
 # Set the min and max time when TIME_MODE is random
 TIME_INTERVAL_MIN = 0.1
-TIME_INTERVAL_MAX = 1
+TIME_INTERVAL_MAX = 0.8
 
 
 [Replies]
@@ -88,9 +96,9 @@ ALLOW_REPLIES = True
 # vowel: replies changing all the vowels for 'i'
 REPLIES_MODE = default
 # Text file name. Relative to the folder where the script is. Do not use quotes.
-# The spanish civil code is set by default. You can use whatever you want as long as the file can be
+# The infamous epic fanfiction "My Immortal" is set as the default. You can use whatever you want as long as the file can be
 # sliced in pieces by a distinct string, such as ';;'
-FILE = codigocivil
+FILE = my_immortal
 # A string to split the file in small pieces. Do not use quotes.
 FILE_SPLIT = ;;
 # Probability of post an item from the text file when REPLIES MODE is default
@@ -119,9 +127,9 @@ ___
 - A ton of new comments and process description.
 - Now you can avoid RTs when composing tweets. This may take some more time to find compatible tweets.
 - Removed time countdown, as it was not that useful and in many console emulators wouln't display it right.
-- `Tweets2` is now more reliable (see: known issues). 
+- `Tweets2` is now more reliable (see: known issues).
   - It searches on tweets if union is indexed, and if it's not, that tweet is discarded.
-  - But if `union` is a weird word, a number, etc, it can return an empty tweet list. 
+  - But if `union` is a weird word, a number, etc, it can return an empty tweet list.
   - The bot will try again a certain amount of times before giving up.
 - More complex but also more informative logging
 - Now it will show the time it takes to do its thing
@@ -174,7 +182,7 @@ ___
 - [Solved] [0.4.2]: Replies are bugged.
 - May take a while to get tweets, specially `tweet2`. Sometimes it just doesn't get any _valid_ tweet. I guess this is because the way twitter search works, but I don't know how to fix this, if I can. Nevertheless, the bot manages to recover and try again.
 - In some console emulators, it may not display messages right.
-- You must create an empty file, name it `lastmention` and 
+- You must create an empty file, name it `lastmention` and
 
 ___
 
