@@ -6,7 +6,7 @@ A living proof of the bot (: [drilfiction](https://twitter.com/drilfiction)
 
 ### What does it do?
 
-I had originall considered creating a bot to generate Markov chains based on twitter accounts dril and fanfiction_txt, but this proved insufficient, as the results made too little sense. Branched from another project, this is a single python script bot that can randomly tweet mashed up tweets between 2 accounts or upload photos (although I don't use this particular feature). It keeps a record of previous tweets in a sqlite database and compares new output to them to avoid repeating itself too much.
+I had originally considered creating a bot to generate Markov chains based on twitter accounts dril and fanfiction_txt, but this proved insufficient, as the results made too little sense. Branched from another project, this is a single python script bot that can randomly tweet mashed up tweets between 2 accounts or upload photos (although I don't use this particular feature). It keeps a record of previous tweets in a sqlite database and compares new output to them to avoid repeating itself too much.
 
 It also can stream mentions and reply to them by changing all the vowels by 'i' or using a text file as resource. The infamous epic fanfiction "My Immortal" is set as the default, in fitting with the theme.
 
