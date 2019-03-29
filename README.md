@@ -1,6 +1,6 @@
 # Drilfiction.txt: a very stupid twitter bot.
 
-Tested on macOS macOS 10.14 (18A391). Might work on other OSes. Written on latest Python 3 and licensed under GPLv3. Based on Pynsufferable: https://github.com/adwareboi/pynsufferable-twitter-bot
+Tested on macOS 10.14 (18A391). Might work on other OSes. Written in Python 3 and licensed under GPLv3. Based on Pynsufferable: https://github.com/adwareboi/pynsufferable-twitter-bot
 
 A living proof of the bot (: [drilfiction](https://twitter.com/drilfiction)
 
