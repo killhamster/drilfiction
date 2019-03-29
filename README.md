@@ -6,26 +6,26 @@ A living proof of the bot (: [drilfiction](https://twitter.com/drilfiction)
 
 ### What does it do?
 
-This is a single python script bot that can randomly tweet mashed up tweets between 2 accounts or upload photos. It keeps a record of previous tweets in a sqlite database and compares new output to them to avoid repeating itself too much. It also can stream metions and reply to them by changing all the vowels by 'i' or using a text file as resource.
+I had originall considered creating a bot to generate Markov chains based on twitter accounts dril and fanfiction_txt, but this proved insufficient, as the results made too little sense. Branched from another project, this is a single python script bot that can randomly tweet mashed up tweets between 2 accounts or upload photos (although I don't use this particular feature). It keeps a record of previous tweets in a sqlite database and compares new output to them to avoid repeating itself too much.
 
-The infamous epic fanfiction "My Immortal" is set as the default, in fitting with the theme.
+It also can stream mentions and reply to them by changing all the vowels by 'i' or using a text file as resource. The infamous epic fanfiction "My Immortal" is set as the default, in fitting with the theme.
 
 ### Dependecies:
-- Third party libraries: `tweepy`, `unidecode` and `termcolor`
+- Third party libraries: `tweepy`, `unidecode`, `sqlite3`, `stringdist`, and `termcolor`
 - Also you may need to install `logging` and `configparser`
 - Built-in libraries: `os`, `sys`, `time`, `random` and `threading`
 
 All of these can be installed via `pip`
 
 ### How to use it:
-I just run it from a terminal since I'm a scrub, but you can run it wherever you want as you do it with python 3. I'm considering creating a web and app version.
+I just run it from a terminal since I'm a scrub, but you can run it wherever you want as you do it with python 3. I'm considering creating a web and desktop app version.
 Steps:
 1. You will need to create a [Twitter App](https://developer.twitter.com/en/apps) linked to an account. Get the API keys needed in order to access.
-2. Edit bot.cfg with your parameters. Otherwise it won't work. See below
+2. Edit bot.cfg with your parameters. Otherwise it won't work. See the details below
 3. Enjoy. Or don't. Whatever.
 
 ### Configuration:
-The configuration is pretty straightforward, here's the default one for the current version [1.0]:
+The configuration is pretty straightforward, here's the default one for the current version [1.0]. Hopefully it's descriptive enough:
 
 ```
 [Twitter]
@@ -49,7 +49,7 @@ ACCOUNTS = dril, fanfiction_txt
 # If it's too large, the bot may take more time. Should not be very big to avoid rate limit.
 # If it's too small, the bot can fail more frequently. Should not be smaller than 10.
 # 50~100 gives the bot a large amount of tweets to choose from and doesn't take that long to retrieve.
-TWEET_COUNT = 800
+TWEET_COUNT = 400
 # Length limits of Tweet1.
 # Sometimes a too-long or too-short tweet leads to unsatisfying results.
 # Being too restrictive in these values can lead to difficulty finding acceptable tweets to build on.
@@ -65,7 +65,7 @@ MAX_TRIES = 7
 # Probability of a new tweet of being uppercase.
 UPPER_PROB = 0.07
 # Levenshtein distance used for comparison. This number can be a float between 0.0 and 1.0.
-# Higher values allow for more similarity.
+# Higher values allow for more similarity (I think).
 DISTANCE = 0.75
 # Image folder name. Relative to the folder where the script is. Do not use quotes.
 IMAGE_FOLDER = photos
