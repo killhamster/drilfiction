@@ -1,14 +1,15 @@
-# Drilfiction.txt: a very stupid twitter bot.
-
+# Drilfiction.txt: what if dril wrote fanfiction?
 Tested on macOS 10.14 (18A391). Might work on other OSes. Written in Python 3 and licensed under GPLv3. Based on Pynsufferable: https://github.com/adwareboi/pynsufferable-twitter-bot
 
-A living proof of the bot (: [drilfiction](https://twitter.com/drilfiction)
+The bot in action: [drilfiction](https://twitter.com/drilfiction)
 
 ### What does it do?
-
-I had originally considered creating a bot to generate Markov chains based on twitter accounts dril and fanfiction_txt, but this proved insufficient, as the results made too little sense. Branched from another project, this is a single python script bot that can randomly tweet mashed up tweets between 2 accounts or upload photos (although I don't use this particular feature). It keeps a record of previous tweets in a sqlite database and compares new output to them to avoid repeating itself too much.
+I had originally considered creating a bot to generate Markov chains based on twitter accounts dril and fanfiction_txt, but this proved insufficient, as the results made too little sense. Branched from another project, this is a single python script bot that can randomly tweet mashed up tweets between 2 accounts or upload photos. It keeps a record of previous tweets in a sqlite database and compares new output to them to avoid repeating itself too much.
 
 It also can stream mentions and reply to them by changing all the vowels by 'i' or using text files as resource. Several infamously bad fanfictions are set as the default, in fitting with the theme.
+
+### Why does it do that?
+I'm teaching myself to program and had a bad idea. Maybe it was a good idea. It depends on who's looking.
 
 ### Dependecies:
 - Third party libraries: `tweepy`, `unidecode`, `sqlite3`, `stringdist`, and `termcolor`
@@ -29,7 +30,7 @@ The configuration is pretty straightforward, here's the default one for the curr
 
 ```
 [Twitter]
-# Set the access keys. Get yours on developer.twitter.com. Do not use quotes.
+# Set the access keys. Get yours at developer.twitter.com. Do not use quotes.
 CONSUMER_KEY =
 CONSUMER_SECRET =
 ACCESS_KEY =
@@ -41,9 +42,9 @@ ACCESS_SECRET =
 # default: random. Needs: IMAGE_PROB, IMAGE_FOLDER, TWEET_COUNT, ACCOUNTS, MAX_TRIES, UPPER_PROB
 # image: posts only images from a folder, needs: IMAGE_FOLDER
 # write: posts only mash up tweets, needs: TWEET_COUNT, ACCOUNTS, MAX_TRIES, UPPER_PROB
-MODE = write
+MODE = default
 
-# Accounts. Separate by commas. Do not use quotes. Duplicates will be erased. (Use only one line)
+# Accounts. Separate with commas. Do not use quotes. Duplicates will be erased. (Use only one line)
 ACCOUNTS = dril, fanfiction_txt
 # How many tweets to retrieve from the first account.
 # If it's too large, the bot may take more time. Should not be very big to avoid rate limit.
