@@ -44,7 +44,7 @@ MAIN_MODE = str(CONFIG.get('Bot', 'MODE'))
 if MAIN_MODE == 'default':
     COUNT = int(CONFIG.get('Bot', 'TWEET_COUNT'))
     SEARCH_COUNT = int(CONFIG.get('Bot', 'SEARCH_COUNT'))
-    if len(SEARCH_COUNT) > 100:
+    if SEARCH_COUNT > 100:
         cprint('You cannot use a number greater than 100, the twitter API will not return more results. Check the configuration file.', 'red')
         logging.error('You cannot use a number greater than 100.')
         exit()
@@ -62,7 +62,7 @@ if MAIN_MODE == 'default':
 elif MAIN_MODE == 'write':
     COUNT = int(CONFIG.get('Bot', 'TWEET_COUNT'))
     SEARCH_COUNT = int(CONFIG.get('Bot', 'SEARCH_COUNT'))
-    if len(SEARCH_COUNT) > 100:
+    if SEARCH_COUNT > 100:
         cprint('You cannot use a number greater than 100, the twitter API will not return more results. Check the configuration file.', 'red')
         logging.error('You cannot use a number greater than 100.')
         exit()
