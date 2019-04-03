@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-PYNSUFFERABLE Bot by adwareboi, GPLv3
-https://github.com/adwareboi/pynsufferable-twitter-bot
+DRILFICTION by killhamster, GPLv3
+https://github.com/killhamster/drilfiction
+https://twitter.com/drilfiction
 
 This is a python twitter bot that can randomly tweet mashed up tweets or upload images.
 It can also reply to mentions, by changing all the vowels by 'i' or using a plain text file.
@@ -15,16 +16,11 @@ import random
 import logging
 import threading
 import configparser
-
 import unidecode
 import tweepy
 from termcolor import cprint
-
-# Modules needed to save and compare tweets -kh
-
 import sqlite3
 import stringdist
-
 
 # CONFIG & SETUP #
 
@@ -60,6 +56,7 @@ if MAIN_MODE == 'default':
         exit()
 elif MAIN_MODE == 'write':
     COUNT = int(CONFIG.get('Bot', 'TWEET_COUNT'))
+    SEARCH_COUNT = int(CONFIG.get('Bot', 'SEARCH_COUNT'))
     TRIES = int(CONFIG.get('Bot', 'MAX_TRIES'))
     UPPER_PROB = float(CONFIG.get('Bot', 'UPPER_PROB'))
     MAIN_CHOOSER = 0
@@ -93,11 +90,13 @@ ALLOW_REPLIES = CONFIG.getboolean('Replies', 'ALLOW_REPLIES')
 if ALLOW_REPLIES is True:
     REPLIES_MODE = str(CONFIG.get('Replies', 'REPLIES_MODE'))
     if REPLIES_MODE == 'default':
-        FILE = str(CONFIG.get('Replies', 'FILE'))
+        FILES = tuple(set(i for i in (str(CONFIG.get('Replies', 'FILES'))
+                                         .replace(' ', '')).split(',') if i))
         FILE_SPLIT = str(CONFIG.get('Replies', 'FILE_SPLIT'))
         REPLY_CHOOSER = float(CONFIG.get('Replies', 'FILE_PROB'))
     elif REPLIES_MODE == 'file':
-        FILE = str(CONFIG.get('Replies', 'FILE'))
+        FILES = tuple(set(i for i in (str(CONFIG.get('Replies', 'FILES'))
+                                         .replace(' ', '')).split(',') if i))
         FILE_SPLIT = str(CONFIG.get('Replies', 'FILE_SPLIT'))
         REPLY_CHOOSER = 1
     elif REPLIES_MODE == 'vowel':
@@ -108,17 +107,13 @@ if ALLOW_REPLIES is True:
         exit()
 
 DISTANCE = float(CONFIG.get('Bot', 'DISTANCE'))
-
 MIN_LENGTH = int(CONFIG.get('Bot', 'MIN_LENGTH'))
-MAX_LENGTH = int(CONFIG.get('Bot', 'MAX_LENGTH'))
 
-cprint('DRILFICTION.TXT 1.0', 'grey', 'on_blue', end='')
+cprint('DRILFICTION.TXT 1.1', 'grey', 'on_blue', end='')
 cprint(' - a really stupid twitter bot Based on PYNSUFFERABLE by adwareboi. https://github.com/adwareboi', 'blue')
-
 
 class GetTweetsError(Exception):
     """Works like an interrupt for an error that may happen when getting tweets."""
-
 
 class Stream(tweepy.StreamListener):
     """Replies streaming. Overrides method on tweepy.StreamListener."""
@@ -129,6 +124,8 @@ class Stream(tweepy.StreamListener):
         logging.info(str('New mention: ' + status.author.screen_name + ' - ' + status.text))
         reply = clean(status.text)
         if (random.random() < REPLY_CHOOSER) or (not reply):
+            # REPLY FILE SELECTION
+            FILE = random.choice(FILES)
             file = open(FILE, 'r')
             reply = random.choice(''.join(file.readlines()).split(FILE_SPLIT))
             file.close()
@@ -144,10 +141,9 @@ class Stream(tweepy.StreamListener):
         cprint('\nReplied: ', 'green')
         cprint(reply, 'magenta')
 
-# Gonna add some database functionality here hopefully.
 # Doing this to compare new tweets with old to avoid too much repetition. -kh
-
 # Saves successful tweets to a database
+
 def save_tweet(tweet):
     conn = sqlite3.connect("drilfiction.db")
     cur = conn.cursor()
@@ -156,6 +152,7 @@ def save_tweet(tweet):
     conn.commit()
 
 # Accesses the DB for comparison
+
 def search_tweets():
     conn = sqlite3.connect("drilfiction.db")
     cur = conn.cursor()
@@ -166,6 +163,7 @@ def search_tweets():
     return column
 
 # Compares the tentative tweet with older ones to avoid becoming too repetitive
+
 def compare_tweets(tweet):
     for item in search_tweets():
         row = item
@@ -197,7 +195,6 @@ def clean(raw_tweet, word_start=('@', 'http://', 'https://', 'RT'), word_end='â€
                     cleaned.append(word)
         return ' '.join(cleaned)
 
-
 def start_replies():
     """When enabled, it will wait for new mentions and reply to them. See Stream class above"""
     while True:
@@ -212,7 +209,6 @@ def start_replies():
             logging.error(rp_except.args)
             time.sleep(60)
             continue
-
 
 def new_tweet():
     """Publishes new tweets"""
@@ -237,8 +233,7 @@ def new_tweet():
     cprint('Getting tweets...', 'yellow')
     tweets1 = list(filter(None,
                           [clean(t.full_text)
-                           for t in API.user_timeline(screen_name=acc1, count=COUNT,
-                                                      tweet_mode='extended')]))
+                           for t in tweepy.Cursor(API.user_timeline, id=acc1, tweet_mode="extended").items(COUNT)]))
     # If tweets1 is empty (this is REALLY unusual)
     if not tweets1:
         cprint('GetTweetsError: Tweet1 is empty, this is very unusual. Check: ' + acc1)
@@ -249,17 +244,13 @@ def new_tweet():
         cprint('GetTweetsError: Tweet1 is too short. Trying again.')
         logging.error(str('GetTweetsError: Tweet1 is too short. Trying again.'))
         raise GetTweetsError
-    if len(tweet1) > MAX_LENGTH:
-        cprint('GetTweetsError: Tweet1 is too long. Trying again.')
-        logging.error(str('GetTweetsError: Tweet1 is too long. Trying again.'))
-        raise GetTweetsError
 
     union = unidecode.unidecode(random.choice(tweet1.split())).lower()
     tweets2 = list()
     for t in list(filter(None, [clean(t.full_text)
                                 for t in
                                 API.search(q=''.join(('from:', acc2, ' ', union)),
-                                           count=COUNT, tweet_mode='extended')])):
+                                           count=SEARCH_COUNT, tweet_mode='extended')])):
         try:
             (t.split()).index(union)
             tweets2.append(t)
@@ -275,7 +266,7 @@ def new_tweet():
         for t in list(filter(None, [clean(t.full_text)
                                     for t in
                                     API.search(q=''.join(('from:', acc2, ' ', union)),
-                                               count=COUNT, tweet_mode='extended')])):
+                                               count=SEARCH_COUNT, tweet_mode='extended')])):
             try:
                 (t.split()).index(union)
                 tweets2.append(t)
@@ -313,7 +304,6 @@ def new_tweet():
     if len(newtweet) > 280:
         newtweet = newtweet[0:279]
 
-
     # COMPARING, SAVING, UPLOADING & CONSOLE OUTPUT
     cprint('Comparing with old tweets', 'yellow')
     if compare_tweets(newtweet) == True:
@@ -331,7 +321,6 @@ def new_tweet():
     else:
         new_tweet()
 
-
 def new_image():
     """Publishes images chosen randomly from a folder."""
     cprint('Uploading...', 'yellow')
@@ -340,7 +329,6 @@ def new_image():
     logging.info(''.join(('Image:', image_filename)))
     cprint('NEW TWEET WITH MEDIA: ', 'blue', end='')
     cprint(image_filename, 'magenta')
-
 
 def main():
     """ Main code. Basically does almost everything."""
@@ -374,7 +362,6 @@ def main():
             logging.error('Main: Something was wrong! Retrying. Exception args:')
             logging.error(mn_except.args)
             continue
-
 
 try:
     if ALLOW_REPLIES is True:
