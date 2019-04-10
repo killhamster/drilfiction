@@ -4,7 +4,7 @@ Tested on macOS 10.14 (18A391). Might work on other OSes. Written in Python 3 an
 The bot in action: [drilfiction](https://twitter.com/drilfiction)
 
 ### What does it do?
-I had originally considered creating a bot to generate Markov chains based on twitter accounts dril and fanfiction_txt, but this proved insufficient, as the results made too little sense. Branched from another project, this is a single python script bot that can randomly tweet mashed up tweets between 2 accounts or upload photos. It keeps a record of previous tweets in a sqlite database and compares new output to them to avoid repeating itself too much.
+I had originally considered creating a bot to generate Markov chains based on twitter accounts dril and fanfiction_txt, but this proved insufficient, as the results made too little sense. Branched from another project, this is a single python script bot that can randomly tweet mashed up tweets between 2 accounts, randomly tweet Markov chains, or upload photos. It keeps a record of previous tweets in a sqlite database and compares new output to them to avoid repeating itself too much.
 
 It also can stream mentions and reply to them by changing all the vowels by 'i' or using text files as resource. Several infamously bad fanfictions are set as the default, in fitting with the theme.
 
@@ -14,7 +14,7 @@ I'm teaching myself to program and had a bad idea. Maybe it was a good idea. It 
 ### Dependecies:
 - Third party libraries: `tweepy`, `unidecode`, `sqlite3`, `stringdist`, and `termcolor`
 - Also you may need to install `logging` and `configparser`
-- Built-in libraries: `os`, `sys`, `time`, `random` and `threading`
+- Built-in libraries: `os`, `sys`, `re`, `time`, `random` and `threading`
 
 All of these can be installed via `pip`
 
@@ -26,7 +26,7 @@ Steps:
 3. Enjoy. Or don't. Whatever.
 
 ### Configuration:
-The configuration is pretty straightforward, here's the default one for the current version [1.1]. Hopefully it's descriptive enough:
+The configuration is pretty straightforward, here's the default one for the current version [2.0]. Hopefully it's descriptive enough:
 
 ```
 [Twitter]
@@ -41,10 +41,11 @@ ACCESS_SECRET =
 # Available main modes:
 # default: random. Needs: IMAGE_PROB, IMAGE_FOLDER, TWEET_COUNT, ACCOUNTS, MAX_TRIES, UPPER_PROB
 # image: posts only images from a folder, needs: IMAGE_FOLDER
-# write: posts only mash up tweets, needs: TWEET_COUNT, ACCOUNTS, MAX_TRIES, UPPER_PROB
+# write: posts only mash up tweets, needs: TWEET_COUNT, SEARCH_COUNT, ACCOUNTS, MAX_TRIES, MIN_LENGTH, UPPER_PROB
+# markov: generates markov chain tweets. Needs: M_COUNT, ACCOUNTS, MAX_TRIES, MIN_LENGTH, UPPER_PROB
 MODE = default
 
-# Accounts. Separate with commas. Do not use quotes. Duplicates will be erased. (Use only one line)
+# Accounts. Separate by commas. Do not use quotes. Duplicates will be erased. (Use only one line)
 ACCOUNTS = dril, fanfiction_txt
 # How many tweets to retrieve from the first account.
 # If it's too large, the bot may take more time. Should not be very big to avoid rate limit.
@@ -72,12 +73,19 @@ UPPER_PROB = 0.07
 # Higher values allow for more similarity.
 # Setting this too low will probably prevent things from working.
 DISTANCE = 0.75
+# How many tweets to retrieve from each account when generating markov tweets.
+# Larger numbers provide a better corpus but can take longer to obtain.
+M_COUNT = 200
+# How closely do you want this to hew to sensical? 2 is low and 4 is high.
+ORDER = 2
 # Image folder name. Relative to the folder where the script is. Do not use quotes.
 IMAGE_FOLDER = photos
 # Image probability when MODE is set to default. Keep in mind that this is not *real* probability,
-# as everytime tweets are not generated correctly (quite often) this parameter will be used again,
+# as every time tweets are not generated correctly (quite often) this parameter will be used again,
 # increasing the probability of posting a photo.
-IMAGE_PROB = 0.1
+IMAGE_PROB = 0.01
+# Markov tweet probability when MODE is set to default. Same as above, but for Markov type tweets.
+MARKOV_PROB = 0.1
 ALLOW_RTS = False
 
 # Available time modes:
@@ -103,7 +111,7 @@ REPLIES_MODE = default
 # Text file name(s). Relative to the folder where the script is. Separate with commas; do not use quotes.
 # Includes some of the worst fanfictions ever. You can use whatever you want as long as the file can be
 # sliced in pieces by a distinct string, such as ';;'
-FILES = my_immortal, garf, hlflc, danube
+FILES = my_immortal, garf, hlflc, danube, zybourne
 # A string to split the file in small pieces. Do not use quotes.
 FILE_SPLIT = ;;
 # Probability of post an item from the text file when REPLIES MODE is default
@@ -118,6 +126,12 @@ CONSOLE_OUTPUT = True
 ___
 
 ## [Stable] Changelog:
+
+### 2.0 New Mode
+
+- Added Markov chain mode; bot will now tweet sentences generated via Markov chain
+- typo fixes in docs
+- added some more bad fanfic/text for replies
 
 ### 1.1: Improvements
 

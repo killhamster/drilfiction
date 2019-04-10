@@ -10,6 +10,7 @@ It can also reply to mentions, by changing all the vowels by 'i' or using a plai
 """
 
 import os
+import re
 import sys
 import time
 import random
@@ -21,6 +22,7 @@ import tweepy
 from termcolor import cprint
 import sqlite3
 import stringdist
+import markov
 
 # CONFIG & SETUP #
 
@@ -43,6 +45,8 @@ if CONFIG.getboolean('Misc', 'CONSOLE_OUTPUT') is False:
 MAIN_MODE = str(CONFIG.get('Bot', 'MODE'))
 if MAIN_MODE == 'default':
     COUNT = int(CONFIG.get('Bot', 'TWEET_COUNT'))
+    M_COUNT = int(CONFIG.get('Bot', 'M_COUNT'))
+    ORDER = int(CONFIG.get('Bot', 'ORDER'))
     SEARCH_COUNT = int(CONFIG.get('Bot', 'SEARCH_COUNT'))
     if SEARCH_COUNT > 100:
         cprint('You cannot use a number greater than 100, the twitter API will not return more results. Check the configuration file.', 'red')
@@ -51,8 +55,11 @@ if MAIN_MODE == 'default':
     TRIES = int(CONFIG.get('Bot', 'MAX_TRIES'))
     IMAGE_FOLDER = str(CONFIG.get('Bot', 'IMAGE_FOLDER'))
     MAIN_CHOOSER = float(CONFIG.get('Bot', 'IMAGE_PROB'))
+    MARKOV_CHOOSER = float(CONFIG.get('Bot', 'MARKOV_PROB'))
     UPPER_PROB = float(CONFIG.get('Bot', 'UPPER_PROB'))
     ALLOW_RTS = CONFIG.getboolean('Bot', 'ALLOW_RTS')
+    DISTANCE = float(CONFIG.get('Bot', 'DISTANCE'))
+    MIN_LENGTH = int(CONFIG.get('Bot', 'MIN_LENGTH'))
     ACCOUNTS = tuple(set(i for i in (str(CONFIG.get('Bot', 'ACCOUNTS'))
                                      .replace(' ', '')).split(',') if i))
     if len(ACCOUNTS) == 1:
@@ -70,6 +77,22 @@ elif MAIN_MODE == 'write':
     UPPER_PROB = float(CONFIG.get('Bot', 'UPPER_PROB'))
     MAIN_CHOOSER = 0
     ALLOW_RTS = CONFIG.getboolean('Bot', 'ALLOW_RTS')
+    DISTANCE = float(CONFIG.get('Bot', 'DISTANCE'))
+    MIN_LENGTH = int(CONFIG.get('Bot', 'MIN_LENGTH'))
+    ACCOUNTS = tuple(set(i for i in (str(CONFIG.get('Bot', 'ACCOUNTS'))
+                                     .replace(' ', '')).split(',') if i))
+    if len(ACCOUNTS) == 1:
+        cprint('You MUST specify more than 1 account. Check the configuration file.', 'red')
+        logging.error('You MUST specify more than 1 account. Check the configuration file.')
+        exit()
+elif MAIN_MODE == 'markov':
+    M_COUNT = int(CONFIG.get('Bot', 'M_COUNT'))
+    ORDER = int(CONFIG.get('Bot', 'ORDER'))
+    TRIES = int(CONFIG.get('Bot', 'MAX_TRIES'))
+    UPPER_PROB = float(CONFIG.get('Bot', 'UPPER_PROB'))
+    MAIN_CHOOSER = 2
+    ALLOW_RTS = CONFIG.getboolean('Bot', 'ALLOW_RTS')
+    MIN_LENGTH = int(CONFIG.get('Bot', 'MIN_LENGTH'))
     ACCOUNTS = tuple(set(i for i in (str(CONFIG.get('Bot', 'ACCOUNTS'))
                                      .replace(' ', '')).split(',') if i))
     if len(ACCOUNTS) == 1:
@@ -115,11 +138,8 @@ if ALLOW_REPLIES is True:
         logging.error('ERROR: Reply mode is not declared properly. Check bot.cfg.')
         exit()
 
-DISTANCE = float(CONFIG.get('Bot', 'DISTANCE'))
-MIN_LENGTH = int(CONFIG.get('Bot', 'MIN_LENGTH'))
-
-cprint('DRILFICTION.TXT 1.1', 'grey', 'on_blue', end='')
-cprint(' - a really stupid twitter bot Based on PYNSUFFERABLE by adwareboi. https://github.com/adwareboi', 'blue')
+cprint('DRILFICTION.TXT 2.0', 'grey', 'on_blue', end='')
+cprint(' - a really stupid twitter bot based on PYNSUFFERABLE and heroku_ebooks.', 'blue')
 
 class GetTweetsError(Exception):
     """Works like an interrupt for an error that may happen when getting tweets."""
@@ -330,6 +350,76 @@ def new_tweet():
     else:
         new_tweet()
 
+def markov_tweet():
+    """Publishes tweets generated from Markov chains"""
+    acc1 = random.choice(ACCOUNTS)
+    acc2 = random.choice(ACCOUNTS)
+    while acc1 == acc2:
+        acc2 = random.choice(ACCOUNTS)
+    corpus = []
+    if M_COUNT >= 500:
+        cprint('Buckle in, this could take a while! ', 'yellow')
+    cprint('Getting tweets...', 'yellow')
+    # Generates a corpus based on two twitter accounts
+    corpus_tweets1 = list(filter(None,
+                          [clean(t.full_text)
+                           for t in tweepy.Cursor(API.user_timeline, id=acc1, tweet_mode="extended").items(M_COUNT)]))
+    cprint('Adding %s to corpus' % (acc1,), 'yellow')
+    if not corpus_tweets1:
+        cprint('GetTweetsError: corpus_tweets1 is empty, this is very unusual. Check: ' + acc1)
+        logging.error(str('GetTweetsError: corpus_tweets1 is empty, this is very unusual. Check: ' + acc1))
+        raise GetTweetsError
+    else:
+        corpus += corpus_tweets1
+    corpus_tweets2 = list(filter(None,
+                          [clean(t.full_text)
+                           for t in tweepy.Cursor(API.user_timeline, id=acc2, tweet_mode="extended").items(M_COUNT)]))
+    cprint('Adding %s to corpus' % (acc2,), 'yellow')
+    if not corpus_tweets2:
+        cprint('GetTweetsError: corpus_tweets2 is empty, this is very unusual. Check: ' + acc2)
+        logging.error(str('GetTweetsError: corpus_tweets2 is empty, this is very unusual. Check: ' + acc2))
+        raise GetTweetsError
+    else:
+        corpus += corpus_tweets2
+    cprint('Corpus complete!', 'yellow')
+    if len(corpus) == 0:
+        cprint('GetTweetsError: No statuses found in corpus!', 'red')
+        logging.error(str('GetTweetsError: No statuses found in corpus!'))
+        raise GetTweetsError
+        markov_tweet()
+    mine = markov.MarkovChainer(ORDER)
+    for status in corpus:
+        if not re.search('([\.\!\?\"\']$)', status):
+            status += "."
+        mine.add_text(status)
+    for x in range(0, 10):
+        newtweet = mine.generate_sentence()
+
+    # randomly drop the last word, like the horse_ebooks of yore.
+    if random.randint(0, 4) == 0 and re.search(r'(in|to|from|for|with|by|our|of|your|around|under|beyond)\s\w+$', newtweet) is not None:
+        cprint('Losing last word randomly', 'yellow')
+        newtweet = re.sub(r'\s\w+.$', '', newtweet)
+
+    # if a tweet is very short, this will add a second sentence to it.
+    if newtweet is not None and len(newtweet) < 40:
+        cprint('Short tweet. Adding another sentence randomly', 'yellow')
+        newer_status = mine.generate_sentence()
+        if newer_status is not None:
+            newtweet += " " + mine.generate_sentence()
+        else:
+            newtweet = newtweet
+    elif random.random() < UPPER_PROB:
+        newtweet = newtweet.upper()
+
+    # SAVING, UPLOADING & CONSOLE OUTPUT
+    cprint('Saving to database...', 'yellow')
+    save_tweet(newtweet)
+    cprint('Updating status...', 'yellow')
+    API.update_status(status=newtweet)
+    cprint('Markov  -  ', 'magenta', end='')
+    cprint(newtweet, 'cyan')
+    logging.info('\t|\t'.join((newtweet)))
+
 def new_image():
     """Publishes images chosen randomly from a folder."""
     cprint('Uploading...', 'yellow')
@@ -346,7 +436,11 @@ def main():
             cprint(time.strftime('%d/%m/%Y  /  %H:%M:%S'), 'blue')
             start = float(time.time())
 
-            if random.random() < MAIN_CHOOSER:
+            if MAIN_MODE == 'markov':
+                markov_tweet()
+            elif random.random() < MARKOV_CHOOSER:
+                markov_tweet()
+            elif random.random() < MAIN_CHOOSER:
                 new_image()
             else:
                 new_tweet()
