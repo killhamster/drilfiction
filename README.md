@@ -1,10 +1,10 @@
 # Drilfiction.txt: what if dril wrote fanfiction?
-Tested on macOS 10.14 (18A391). Might work on other OSes. Written in Python 3 and licensed under GPLv3. Based on Pynsufferable: https://github.com/adwareboi/pynsufferable-twitter-bot
+Tested on macOS 10.14 (18A391). Might work on other OSes. Written in Python 3 and licensed under GPLv3. Based on Pynsufferable: https://github.com/adwareboi/pynsufferable-twitter-bot with additional bits adapted from heroku_ebooks: https://github.com/tommeagher/heroku_ebooks
 
 The bot in action: [drilfiction](https://twitter.com/drilfiction)
 
 ### What does it do?
-I had originally considered creating a bot to generate Markov chains based on twitter accounts dril and fanfiction_txt, but this proved insufficient, as the results made too little sense. Branched from another project, this is a single python script bot that can randomly tweet mashed up tweets between 2 accounts, randomly tweet Markov chains, or upload photos. It keeps a record of previous tweets in a sqlite database and compares new output to them to avoid repeating itself too much.
+I had originally considered creating a bot to generate Markov chains based on twitter accounts dril and fanfiction_txt, but this proved insufficient, as the results made too little sense. Branched from another project, this is a python script bot that can randomly tweet mashed up tweets between 2 accounts, randomly tweet Markov chains, or upload photos. It keeps a record of previous tweets in a sqlite database and compares new output to them to avoid repeating itself too much.
 
 It also can stream mentions and reply to them by changing all the vowels by 'i' or using text files as resource. Several infamously bad fanfictions are set as the default, in fitting with the theme.
 
@@ -19,7 +19,7 @@ I'm teaching myself to program and had a bad idea. Maybe it was a good idea. It 
 All of these can be installed via `pip`
 
 ### How to use it:
-I just run it from a terminal since I'm a scrub, but you can run it wherever you want as you do it with python 3. I'm considering creating a web and desktop app version.
+I just run it from a terminal since I'm a scrub, but you can run it however you run your python scripts. I'm considering creating a web and desktop app version.
 Steps:
 1. You will need to create a [Twitter App](https://developer.twitter.com/en/apps) linked to an account. Get the API keys needed in order to access.
 2. Edit bot.cfg with your parameters. Otherwise it won't work. See the details below
