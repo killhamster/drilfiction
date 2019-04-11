@@ -252,25 +252,27 @@ def new_tweet():
     # tweets1 is gotten directly from the acc1 timeline. Then, tweet1 is chosen randomly.
     # tweets2 is a bit more tricky: If we want to join 2 tweets we need a reference, a common word:
     # union. This is chosen randomly from tweet1 and used as a search argument to get tweets2 from
-    # acc2. By the way twitter search works, this is not always true, we can get tweets that do not
-    # contain union. So we discard those.
+    # acc2. The way twitter search works, this is not always true, we can get tweets that do not
+    # contain union. So we discard those. Good job twitter.
     # Sometimes also the search returns nothing, sometimes returns invalid tweets, such as
-    # image links or so. TRIES specifies how many times should the bot try to get tweets.
-    # In case that TRIES limit is reached, an exception will be raised: GetTweetsError,
-    # but it works more like an interrupt to avoid an infinite loop. '''
+    # image links or some other trash. TRIES specifies how many times should the bot should try to get tweets.
+    # In case the TRIES limit is reached, an exception will be raised: GetTweetsError,
+    # but it works more like an interrupt to avoid an infinite loop.
 
     cprint('Getting tweets...', 'yellow')
+    if COUNT > 1000:
+        cprint('Hang in there, this could take some time!', 'yellow')
     tweets1 = list(filter(None,
                           [clean(t.full_text)
                            for t in tweepy.Cursor(API.user_timeline, id=acc1, tweet_mode="extended").items(COUNT)]))
     # If tweets1 is empty (this is REALLY unusual)
     if not tweets1:
-        cprint('GetTweetsError: Tweet1 is empty, this is very unusual. Check: ' + acc1)
+        cprint('GetTweetsError: wtf, tweet1 is empty, this is very unusual. Check: ' + acc1)
         logging.error(str('GetTweetsError: Tweet1 is empty, this is very unusual. Check: ' + acc1))
         raise GetTweetsError
     tweet1 = random.choice(tweets1)
     if len(tweet1) < MIN_LENGTH:
-        cprint('GetTweetsError: Tweet1 is too short. Trying again.')
+        cprint('GetTweetsError: Ugh, tweet1 is too short. Trying again.')
         logging.error(str('GetTweetsError: Tweet1 is too short. Trying again.'))
         raise GetTweetsError
 
@@ -366,7 +368,7 @@ def markov_tweet():
                            for t in tweepy.Cursor(API.user_timeline, id=acc1, tweet_mode="extended").items(M_COUNT)]))
     cprint('Adding %s to corpus' % (acc1,), 'yellow')
     if not corpus_tweets1:
-        cprint('GetTweetsError: corpus_tweets1 is empty, this is very unusual. Check: ' + acc1)
+        cprint('GetTweetsError: wtf, corpus_tweets1 is empty, this is very unusual. Check: ' + acc1)
         logging.error(str('GetTweetsError: corpus_tweets1 is empty, this is very unusual. Check: ' + acc1))
         raise GetTweetsError
     else:
@@ -376,14 +378,14 @@ def markov_tweet():
                            for t in tweepy.Cursor(API.user_timeline, id=acc2, tweet_mode="extended").items(M_COUNT)]))
     cprint('Adding %s to corpus' % (acc2,), 'yellow')
     if not corpus_tweets2:
-        cprint('GetTweetsError: corpus_tweets2 is empty, this is very unusual. Check: ' + acc2)
+        cprint('GetTweetsError: wtf, corpus_tweets2 is empty, this is very unusual. Check: ' + acc2)
         logging.error(str('GetTweetsError: corpus_tweets2 is empty, this is very unusual. Check: ' + acc2))
         raise GetTweetsError
     else:
         corpus += corpus_tweets2
     cprint('Corpus complete!', 'yellow')
     if len(corpus) == 0:
-        cprint('GetTweetsError: No statuses found in corpus!', 'red')
+        cprint('GetTweetsError: Aw hell naw, no statuses found in corpus!', 'red')
         logging.error(str('GetTweetsError: No statuses found in corpus!'))
         raise GetTweetsError
         markov_tweet()
@@ -402,7 +404,7 @@ def markov_tweet():
 
     # if a tweet is very short, this will add a second sentence to it.
     if newtweet is not None and len(newtweet) < 40:
-        cprint('Short tweet. Adding another sentence randomly', 'yellow')
+        cprint('Short tweet. Adding another sentence.', 'yellow')
         newer_status = mine.generate_sentence()
         if newer_status is not None:
             newtweet += " " + mine.generate_sentence()
