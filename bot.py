@@ -152,7 +152,10 @@ class Stream(tweepy.StreamListener):
         cprint(status.author.screen_name, 'magenta')
         logging.info(str('New mention: ' + status.author.screen_name + ' - ' + status.text))
         reply = clean(status.text)
-        if (random.random() < REPLY_CHOOSER) or (not reply):
+        if (random.random() == 1.0):
+            # reply with "no."
+            reply = 'no.'
+        elif (REPLY_CHOOSER > random.random() < 1.0) or (not reply):
             # REPLY FILE SELECTION
             FILE = random.choice(FILES)
             file = open(FILE, 'r')
@@ -424,12 +427,18 @@ def markov_tweet():
 
 def new_image():
     """Publishes images chosen randomly from a folder."""
-    cprint('Uploading...', 'yellow')
-    image_filename = random.choice(os.listdir(IMAGE_FOLDER))
-    API.update_with_media('/'.join((IMAGE_FOLDER, image_filename)), status='')
-    logging.info(''.join(('Image:', image_filename)))
-    cprint('NEW TWEET WITH MEDIA: ', 'blue', end='')
-    cprint(image_filename, 'magenta')
+    if len(os.listdir(IMAGE_FOLDER)) == 0:
+        cprint('No images found! Consider adding images to /{}/'.format(IMAGE_FOLDER), 'red')
+        logging.error('No images in image folder.')
+    else:
+        image_filename = random.choice(os.listdir(IMAGE_FOLDER))
+        API.update_with_media('/'.join((IMAGE_FOLDER, image_filename)), status='')
+        logging.info(''.join(('Image:', image_filename)))
+        cprint('Uploading...', 'yellow')
+        cprint('NEW TWEET WITH MEDIA: ', 'blue', end='')
+        cprint(image_filename, 'magenta')
+        cprint('Deleting %s so I won\'t repost it later' % (image_filename,), 'yellow')
+        os.remove(os.path.join(IMAGE_FOLDER, image_filename))
 
 def main():
     """ Main code. Basically does almost everything."""

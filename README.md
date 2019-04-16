@@ -127,6 +127,12 @@ ___
 
 ## [Stable] Changelog:
 
+### 2.1 Minor Improvements
+
+- Images now automatically deleted after posting to avoid repetitive image posts.
+- Added rare "no." reply.
+- Added additional breakpoints in my_immortal.
+
 ### 2.0 New Mode
 
 - Added Markov chain mode; bot will now tweet sentences generated via Markov chain
