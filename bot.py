@@ -1,28 +1,21 @@
 # -*- coding: utf-8 -*-
-
-"""
-DRILFICTION by killhamster, GPLv3
-https://github.com/killhamster/drilfiction
-https://twitter.com/drilfiction
-
-This is a python twitter bot that can randomly tweet mashed up tweets or upload images.
-It can also reply to mentions, by changing all the vowels by 'i' or using a plain text file.
-"""
+# butts lol
 
 import os
 import re
 import sys
 import time
+import html
+import tweepy
 import random
+import markov
+import sqlite3
 import logging
 import threading
-import configparser
 import unidecode
-import tweepy
-from termcolor import cprint
-import sqlite3
 import stringdist
-import markov
+import configparser
+from termcolor import cprint
 
 # CONFIG & SETUP #
 
@@ -37,6 +30,7 @@ AUTH.set_access_token(str(CONFIG.get('Twitter', 'ACCESS_KEY')),
 API = tweepy.API(AUTH, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, timeout=60)
 
 USERNAME = API.verify_credentials().screen_name
+MARKOV_CHOOSER = float(CONFIG.get('Bot', 'MARKOV_PROB'))
 
 sys.stdout = sys.__stdout__
 if CONFIG.getboolean('Misc', 'CONSOLE_OUTPUT') is False:
@@ -54,8 +48,9 @@ if MAIN_MODE == 'default':
         exit()
     TRIES = int(CONFIG.get('Bot', 'MAX_TRIES'))
     IMAGE_FOLDER = str(CONFIG.get('Bot', 'IMAGE_FOLDER'))
+    if os.path.isdir(IMAGE_FOLDER) == False:
+        os.mkdir(IMAGE_FOLDER)
     MAIN_CHOOSER = float(CONFIG.get('Bot', 'IMAGE_PROB'))
-    MARKOV_CHOOSER = float(CONFIG.get('Bot', 'MARKOV_PROB'))
     UPPER_PROB = float(CONFIG.get('Bot', 'UPPER_PROB'))
     ALLOW_RTS = CONFIG.getboolean('Bot', 'ALLOW_RTS')
     DISTANCE = float(CONFIG.get('Bot', 'DISTANCE'))
@@ -101,6 +96,8 @@ elif MAIN_MODE == 'markov':
         exit()
 elif MAIN_MODE == 'image':
     IMAGE_FOLDER = str(CONFIG.get('Bot', 'IMAGE_FOLDER'))
+    if os.path.isdir(IMAGE_FOLDER) == False:
+        os.mkdir(IMAGE_FOLDER)
     MAIN_CHOOSER = 1
 else:
     cprint('ERROR: Main mode is not declared properly. Check bot.cfg.', 'red')
@@ -420,6 +417,7 @@ def markov_tweet():
     cprint('Saving to database...', 'yellow')
     save_tweet(newtweet)
     cprint('Updating status...', 'yellow')
+    newtweet = html.unescape(newtweet)
     API.update_status(status=newtweet)
     cprint('Markov  -  ', 'magenta', end='')
     cprint(newtweet, 'cyan')
@@ -427,9 +425,14 @@ def markov_tweet():
 
 def new_image():
     """Publishes images chosen randomly from a folder."""
+    # Checks if there are any images in the specified folder.
+    # If not and mode is 'image', exits for now.
     if len(os.listdir(IMAGE_FOLDER)) == 0:
-        cprint('No images found! Consider adding images to /{}/'.format(IMAGE_FOLDER), 'red')
+        cprint('No images found! Consider adding images to /{}.'.format(IMAGE_FOLDER), 'red')
         logging.error('No images in image folder.')
+        if MAIN_MODE == 'image':
+            cprint('Exiting, sorry!', 'yellow')
+            exit()
     else:
         image_filename = random.choice(os.listdir(IMAGE_FOLDER))
         API.update_with_media('/'.join((IMAGE_FOLDER, image_filename)), status='')
