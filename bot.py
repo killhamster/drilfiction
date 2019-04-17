@@ -340,6 +340,7 @@ def new_tweet():
     if compare_tweets(newtweet) == True:
         cprint('Saving to database...', 'yellow')
         save_tweet(newtweet)
+        newtweet = html.unescape(newtweet)
         cprint('Updating status...', 'yellow')
         API.update_status(status=newtweet)
         cprint(acc1 + '  -  ', 'magenta', end='')
