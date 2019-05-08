@@ -173,11 +173,11 @@ class Stream(tweepy.StreamListener):
 # Doing this to compare new tweets with old to avoid too much repetition. -kh
 # Saves successful tweets to a database
 
-def save_tweet(tweet):
+def save_tweet(tweet, tweet_type):
     conn = sqlite3.connect("drilfiction.db")
     cur = conn.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS tweets (id INTEGER PRIMARY KEY, tweet TEXT)")
-    cur.execute("INSERT INTO tweets VALUES (NULL, ?)", (tweet,))
+    cur.execute("CREATE TABLE IF NOT EXISTS tweets (id INTEGER PRIMARY KEY, tweet TEXT, tweet_type TEXT)")
+    cur.execute("INSERT INTO tweets VALUES (NULL, ?, ?)", (tweet, tweet_type))
     conn.commit()
 
 # Accesses the DB for comparison
@@ -259,6 +259,7 @@ def new_tweet():
     # In case the TRIES limit is reached, an exception will be raised: GetTweetsError,
     # but it works more like an interrupt to avoid an infinite loop.
 
+    cprint('Mode: Mashup', 'yellow')
     cprint('Getting tweets...', 'yellow')
     if COUNT > 1000:
         cprint('Hang in there, this could take some time!', 'yellow')
@@ -338,8 +339,9 @@ def new_tweet():
     # COMPARING, SAVING, UPLOADING & CONSOLE OUTPUT
     cprint('Comparing with old tweets', 'yellow')
     if compare_tweets(newtweet) == True:
+        tweet_type = "mashup"
         cprint('Saving to database...', 'yellow')
-        save_tweet(newtweet)
+        save_tweet(newtweet, tweet_type)
         newtweet = html.unescape(newtweet)
         cprint('Updating status...', 'yellow')
         API.update_status(status=newtweet)
@@ -360,9 +362,10 @@ def markov_tweet():
     while acc1 == acc2:
         acc2 = random.choice(ACCOUNTS)
     corpus = []
+    cprint('Mode: Markov', 'yellow')
+    cprint('Getting tweets...', 'yellow')
     if M_COUNT >= 500:
         cprint('Buckle in, this could take a while! ', 'yellow')
-    cprint('Getting tweets...', 'yellow')
     # Generates a corpus based on two twitter accounts
     corpus_tweets1 = list(filter(None,
                           [clean(t.full_text)
@@ -416,7 +419,8 @@ def markov_tweet():
 
     # SAVING, UPLOADING & CONSOLE OUTPUT
     cprint('Saving to database...', 'yellow')
-    save_tweet(newtweet)
+    tweet_type = "markov"
+    save_tweet(newtweet, tweet_type)
     cprint('Updating status...', 'yellow')
     newtweet = html.unescape(newtweet)
     API.update_status(status=newtweet)
@@ -435,9 +439,12 @@ def new_image():
             cprint('Exiting, sorry!', 'yellow')
             exit()
     else:
+        cprint('Mode: Image', 'yellow')
         image_filename = random.choice(os.listdir(IMAGE_FOLDER))
         API.update_with_media('/'.join((IMAGE_FOLDER, image_filename)), status='')
         logging.info(''.join(('Image:', image_filename)))
+        tweet_type = "image"
+        save_tweet(image_filename, tweet_type)
         cprint('Uploading...', 'yellow')
         cprint('NEW TWEET WITH MEDIA: ', 'blue', end='')
         cprint(image_filename, 'magenta')
