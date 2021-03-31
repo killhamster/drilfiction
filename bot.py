@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # butts lol
 
+import platform
 import os
+if platform.system() == "Windows":
+    os.system('color')
 import re
 import sys
 import time
@@ -11,6 +14,7 @@ import random
 import markov
 import sqlite3
 import logging
+from logging.handlers import RotatingFileHandler
 import threading
 import unidecode
 import stringdist
@@ -21,7 +25,7 @@ from termcolor import cprint
 
 CONFIG = configparser.ConfigParser()
 CONFIG.read('bot.cfg')
-logging.basicConfig(filename='bot.log', level=logging.INFO,
+logging.basicConfig(handlers=[RotatingFileHandler('./bot.log', maxBytes=500, backupCount=1)], level=logging.INFO,
                     format='%(asctime)s - %(levelname)s\t\t%(message)s')
 AUTH = tweepy.OAuthHandler(str(CONFIG.get('Twitter', 'CONSUMER_KEY')),
                            str(CONFIG.get('Twitter', 'CONSUMER_SECRET')))

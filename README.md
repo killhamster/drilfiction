@@ -1,5 +1,5 @@
 # Drilfiction.txt: what if dril wrote fanfiction?
-Tested on macOS 10.14 (18A391). Might work on other OSes. Written in Python 3 and licensed under GPLv3. Based on Pynsufferable: https://github.com/adwareboi/pynsufferable-twitter-bot with additional bits adapted from heroku_ebooks: https://github.com/tommeagher/heroku_ebooks
+Tested on macOS 10.14 (18A391) and Windows 10. Might work on other OSes. Written in Python 3 and licensed under GPLv3. Based on [Pynsufferable](https://github.com/adwareboi/pynsufferable-twitter-bot) with additional bits adapted from [heroku_ebooks](https://github.com/tommeagher/heroku_ebooks).
 
 The bot in action: [drilfiction](https://twitter.com/drilfiction)
 
